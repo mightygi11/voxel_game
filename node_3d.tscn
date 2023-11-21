@@ -1,0 +1,145 @@
+[gd_scene load_steps=17 format=3 uid="uid://b4t1w11hb7yso"]
+
+[ext_resource type="Script" path="res://chunk_generator.gd" id="1_b0h86"]
+[ext_resource type="PackedScene" uid="uid://bsadimcv848ve" path="res://player.tscn" id="1_hmu0w"]
+[ext_resource type="Texture2D" uid="uid://dtqfnett47047" path="res://skybox.jpg" id="3_523ga"]
+[ext_resource type="Script" path="res://WorldEnvironment.gd" id="3_fb7rx"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_2cdte"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_w3m6r"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_jkvx3"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ts6jw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_letmo"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7vs5c"]
+albedo_color = Color(0, 1, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o8p1h"]
+albedo_color = Color(0, 0, 1, 1)
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_23y8y"]
+panorama = ExtResource("3_523ga")
+
+[sub_resource type="Sky" id="Sky_x7ej6"]
+sky_material = SubResource("PanoramaSkyMaterial_23y8y")
+
+[sub_resource type="Environment" id="Environment_g6ddv"]
+background_mode = 2
+background_color = Color(0.803922, 0.956863, 0.992157, 1)
+background_energy_multiplier = 1.5
+sky = SubResource("Sky_x7ej6")
+sky_rotation = Vector3(0, 0.654498, 0)
+ambient_light_source = 3
+ssr_enabled = true
+ssao_enabled = true
+sdfgi_enabled = true
+sdfgi_use_occlusion = true
+sdfgi_energy = 1.105
+fog_enabled = true
+fog_light_color = Color(0.709804, 1, 1, 1)
+fog_light_energy = 0.5
+fog_sky_affect = 0.0
+volumetric_fog_density = 0.03
+volumetric_fog_sky_affect = 0.45
+
+[sub_resource type="Animation" id="Animation_vlke6"]
+resource_name = "day_cycle"
+length = 10.0
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("DirectionalLight3D")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0.92388, 1.67276e-08, -0.382683, -4.03841e-08, 5, 1, 0, -0.382683, 0, 0.92388, 10, 1, 0.92388, 1.67276e-08, -0.382683, -4.03841e-08)
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("DirectionalLight3D:light_energy")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 2.5, 5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [0.0, 1.0, 0.0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:environment")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("Environment_g6ddv")]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2nstx"]
+_data = {
+"day_cycle": SubResource("Animation_vlke6")
+}
+
+[node name="main" type="Node3D"]
+
+[node name="Chunks" type="Node3D" parent="."]
+script = ExtResource("1_b0h86")
+
+[node name="Player" parent="." instance=ExtResource("1_hmu0w")]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 61.163, 0)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.17381, 23.0206, 1.46752)
+visible = false
+gravity_scale = 0.2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("SphereShape3D_2cdte")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
+mesh = SubResource("SphereMesh_w3m6r")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.138041, 0)
+visible = false
+mesh = SubResource("BoxMesh_jkvx3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 1.38706, 0, 0)
+mesh = SubResource("CylinderMesh_ts6jw")
+surface_material_override/0 = SubResource("StandardMaterial3D_letmo")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.39412, 0)
+mesh = SubResource("CylinderMesh_ts6jw")
+surface_material_override/0 = SubResource("StandardMaterial3D_7vs5c")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 1.50307)
+mesh = SubResource("CylinderMesh_ts6jw")
+surface_material_override/0 = SubResource("StandardMaterial3D_o8p1h")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_g6ddv")
+script = ExtResource("3_fb7rx")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="WorldEnvironment"]
+libraries = {
+"": SubResource("AnimationLibrary_2nstx")
+}
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
+transform = Transform3D(0.804238, -0.201588, -0.559074, 0.53613, 0.652019, 0.536131, 0.256449, -0.730913, 0.632456, 0, 0, 0)
+light_color = Color(1, 1, 0.780392, 1)
+light_energy = 1.21
+light_indirect_energy = 1.5
+shadow_enabled = true
+
+[connection signal="moved_chunks" from="Player" to="Chunks" method="_on_player_moved_chunks"]

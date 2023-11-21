@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dfqae284o05ln"]
+
+[ext_resource type="Texture2D" uid="uid://bsv5x0lmkg3m0" path="res://tilemap.png" id="1_o3y7y"]
+
+[resource]
+blend_mode = 3
+cull_mode = 2
+albedo_texture = ExtResource("1_o3y7y")
+emission_enabled = true
+emission = Color(0, 1, 1, 1)
+emission_energy_multiplier = 0.6
+emission_texture = ExtResource("1_o3y7y")
+rim_enabled = true
+rim = 0.25
+rim_tint = 1.0
+clearcoat_enabled = true
+backlight = Color(0.231373, 0.85098, 0.996078, 1)
+refraction_scale = 0.09
+texture_filter = 0
+disable_receive_shadows = true

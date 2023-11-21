@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3 uid="uid://bsadimcv848ve"]
+
+[ext_resource type="Script" path="res://PlayerMovement.gd" id="1_xoxib"]
+[ext_resource type="Script" path="res://POVCamera.gd" id="2_b0ns4"]
+[ext_resource type="PackedScene" uid="uid://biofl4hqtyaly" path="res://ui.tscn" id="3_lss58"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6gpkd"]
+radius = 1.0
+height = 4.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_d1oai"]
+radius = 1.0
+height = 4.0
+
+[node name="Player" type="CharacterBody3D"]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 1.591, 0)
+script = ExtResource("1_xoxib")
+
+[node name="MantleRay" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.998001, -0.0632086, 0, 0.0632086, 0.998001, 0, 1.0747, -1.06809)
+target_position = Vector3(0, -2.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_6gpkd")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_d1oai")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.856956, 0)
+spring_length = 0.0
+script = ExtResource("2_b0ns4")
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+current = true
+fov = 100.0
+
+[node name="Control" parent="SpringArm3D/Camera3D" instance=ExtResource("3_lss58")]

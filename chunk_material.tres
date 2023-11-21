@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://dcy58qwg3wk26"]
+
+[ext_resource type="Texture2D" uid="uid://bsv5x0lmkg3m0" path="res://tilemap.png" id="1_kvdt2"]
+
+[resource]
+albedo_texture = ExtResource("1_kvdt2")
+texture_filter = 0
