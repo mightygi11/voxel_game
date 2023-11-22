@@ -15,7 +15,7 @@ var current_chunk = Vector3i(0, 0, 0)
 
 @onready var camera_arm = $SpringArm3D
 @onready var water_overlay = $SpringArm3D/Camera3D/Control/WaterOverlay
-
+@onready var interact_ray = $SpringArm3D/Camera3D/InteractRay
 
 #state: 0 = default, 1 = airborne, 2 = crouch
 #hand_state: 0 = default, 1 = mantle, 2 = walljump
@@ -47,6 +47,9 @@ func common(delta):
 	if Input.is_action_just_pressed("jump"):
 		buffered_jump = true
 		buffer_jump()
+	if Input.is_action_pressed("fly"):
+		velocity.y = 4
+		velocity += velocity.normalized() * 3 * delta
 		
 	var chunk = Vector3i(floor(position.x/16.0), floor(position.y/16.0), floor(position.z/16.0))
 	if chunk != current_chunk:
@@ -59,6 +62,16 @@ func common(delta):
 	else:
 		water_overlay.visible = false
 		gravity = 9.8
+		
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and interact_ray.is_colliding():
+		var interact_object = interact_ray.get_collider()
+		if interact_object:
+			if interact_object.has_method("interact"):
+				interact_object.interact(self)
+			else:
+				printerr("Trying to interact with an object that doesn't have interact().")
+		
+	
 func grounded(delta):
 	# state changes
 	if buffered_jump == true:

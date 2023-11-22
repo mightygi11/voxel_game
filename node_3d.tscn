@@ -35,9 +35,7 @@ background_energy_multiplier = 1.5
 sky = SubResource("Sky_x7ej6")
 sky_rotation = Vector3(0, 0.654498, 0)
 ambient_light_source = 3
-ssr_enabled = true
 ssao_enabled = true
-sdfgi_enabled = true
 sdfgi_use_occlusion = true
 sdfgi_energy = 1.105
 fog_enabled = true
@@ -93,7 +91,7 @@ _data = {
 script = ExtResource("1_b0h86")
 
 [node name="Player" parent="." instance=ExtResource("1_hmu0w")]
-transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 61.163, 0)
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 10000, 48, 10000)
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.17381, 23.0206, 1.46752)

@@ -2,6 +2,7 @@ extends Node
 
 var reservations: Array[ReservationArea]
 var world_env
+var modified_items := {}
 
 class ReservationArea:
 	var blockID: int

@@ -37,3 +37,7 @@ current = true
 fov = 100.0
 
 [node name="Control" parent="SpringArm3D/Camera3D" instance=ExtResource("3_lss58")]
+
+[node name="InteractRay" type="RayCast3D" parent="SpringArm3D/Camera3D"]
+target_position = Vector3(0, 0, -3)
+collision_mask = 2

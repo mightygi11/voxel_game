@@ -1,10 +1,8 @@
 extends Control
 
-
 @onready var camera = get_parent().get_parent()
 @onready var player = camera.get_parent()
 @onready var world_gen = get_tree().root.get_node("main").get_child(0)
-
 
 func _input(event):
 	if event.is_action_pressed("pause"):
@@ -44,8 +42,7 @@ func _on_fancy_slider_drag_ended(value_changed):
 		world_env.sdfgi_enabled = false
 	elif value == 4:
 		world_env.fog_enabled = true
-		world_env.ssr_enabled = true
 		world_env.ssao_enabled = true
-		world_env.ssil_enabled = false
+		world_env.ssil_enabled = true
 		world_env.sdfgi_enabled = true
 		

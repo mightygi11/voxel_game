@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://cfmxov0wu1yf2"]
+[gd_scene load_steps=19 format=3 uid="uid://cfmxov0wu1yf2"]
 
 [ext_resource type="Script" path="res://Chunks.cs" id="1_c3vao"]
 [ext_resource type="Material" uid="uid://dcy58qwg3wk26" path="res://chunk_material.tres" id="2_3a8rr"]
@@ -10,8 +10,10 @@ seed = 3
 frequency = 0.0315
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1wiw4"]
-seed = 1
-frequency = 0.0115
+noise_type = 3
+seed = 5
+frequency = 0.0025
+fractal_type = 0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_5338p"]
 frequency = 0.061
@@ -26,13 +28,20 @@ seed = 2
 frequency = 0.015
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_4dg07"]
-seed = 2
-frequency = 0.0535
+noise_type = 3
+seed = 3
+frequency = 0.0055
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_66ce0"]
 noise_type = 3
 seed = 5
 frequency = 0.0395
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_8oepw"]
+noise_type = 3
+seed = 4
+frequency = 0.0025
+fractal_type = 0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_e23ed"]
 
@@ -102,6 +111,7 @@ biomeNoise = SubResource("FastNoiseLite_5ippo")
 biomeNoise2 = SubResource("FastNoiseLite_mte51")
 caveNoise = SubResource("FastNoiseLite_4dg07")
 treeNoise = SubResource("FastNoiseLite_66ce0")
+temperatureNoise = SubResource("FastNoiseLite_8oepw")
 metadata/_edit_pinned_properties_ = [&"smallNoise", &"bigNoise", &"waterNoise", &"biomeNoise"]
 
 [node name="WaterMesh" type="MeshInstance3D" parent="."]
