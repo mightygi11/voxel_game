@@ -1,0 +1,19 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://uvkdrq7lk5ue"]
+
+[sub_resource type="Shader" id="Shader_hkes2"]
+code = "
+shader_type spatial;
+render_mode unshaded;
+
+void fragment() {
+	vec3 color = vec3(1.0, (sin(TIME*2.0)*0.1)+0.1, (sin(TIME*2.0)*0.1)+0.1);
+	// float alpha = ;
+	ALPHA = clamp((UV.y-sin(TIME*3.0)*0.1-0.1)*3.0, 0.0, 1.0);
+	ALBEDO = color;
+}
+
+"
+
+[resource]
+render_priority = 0
+shader = SubResource("Shader_hkes2")

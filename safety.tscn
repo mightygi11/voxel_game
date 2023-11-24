@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://cfo4ta213myvo"]
+
+[ext_resource type="Material" uid="uid://uvkdrq7lk5ue" path="res://safety_material.tres" id="1_j1gjf"]
+[ext_resource type="Script" path="res://safety.gd" id="1_p7sba"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_0u6va"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 8.0
+radial_segments = 24
+rings = 1
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_jpwur"]
+height = 3.0
+radius = 1.0
+
+[node name="safety" type="StaticBody3D"]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_p7sba")
+
+[node name="tube" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 4, 1)
+material_override = ExtResource("1_j1gjf")
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_0u6va")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.5, 1)
+shape = SubResource("CylinderShape3D_jpwur")

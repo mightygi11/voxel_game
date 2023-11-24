@@ -10,6 +10,8 @@ var generating = false
 
 var chunk_thread: Thread
 
+@onready var player = $"../Player"
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	chunk_thread = Thread.new()
@@ -29,7 +31,7 @@ func _process(delta):
 		var i = 0
 		while get_node_or_null("%s-%s-%s" % [chunk.x, chunk.y, chunk.z]):
 			i += 1
-			if chunk_queue.is_empty() or i > 20:
+			if chunk_queue.is_empty() or i > 5:
 				generating = false
 				return
 			chunk = chunk_queue.pop_front()
@@ -48,6 +50,12 @@ func generate_chunk(x, y, z, lazy=true): # x y z corresponds to chunk xyzs
 	if get_node_or_null("%s-%s-%s" % [x, y, z]):
 		generating = false
 		return
+	var x_diff = (player.position.x/chunk_size) - x
+	var y_diff = (player.position.y/chunk_size) - y
+	var z_diff = (player.position.z/chunk_size) - z
+	if abs(x_diff) > render_distance or abs(y_diff) > 3 or abs(z_diff) > render_distance:
+		generating = false
+		return
 	var chunk = chunk_file.instantiate()
 	
 	chunk.name = "%s-%s-%s" % [x, y, z]
@@ -58,18 +66,27 @@ func generate_chunk(x, y, z, lazy=true): # x y z corresponds to chunk xyzs
 
 func _on_player_moved_chunks(x, y, z):
 	# remove chunks
+	var lazy_counter = 0
+	var chunks_to_free = []
 	for chunk in get_children():
+		if lazy_counter > 10:
+			lazy_counter = 0
+			await get_tree().process_frame
+		lazy_counter += 1
+		if (!chunk):
+			continue
 		var x_diff = (chunk.position.x/chunk_size) - x
 		var y_diff = (chunk.position.y/chunk_size) - y
 		var z_diff = (chunk.position.z/chunk_size) - z
 		if abs(x_diff) > render_distance or abs(y_diff) > 3 or abs(z_diff) > render_distance:
-			chunk.visible = false
-			chunk.process_mode = Node.PROCESS_MODE_DISABLED
-			if abs(x_diff) > render_distance + 2 or abs(z_diff) > render_distance + 2 or abs(y_diff) > 3:
-				chunk.queue_free()
-		else:
-			chunk.process_mode = Node.PROCESS_MODE_INHERIT
-			chunk.visible = true
+			chunk.queue_free()
+#			chunk.visible = false
+#			chunk.process_mode = Node.PROCESS_MODE_DISABLED
+#			if abs(x_diff) > render_distance + 2 or abs(z_diff) > render_distance + 2 or abs(y_diff) > 3:
+#				chunk.queue_free()
+#		else:
+#			chunk.process_mode = Node.PROCESS_MODE_INHERIT
+#			chunk.visible = true
 	if y >= 0:
 		for i in range(x-render_distance+1, x+render_distance):
 			for j in range(-1, y+2):

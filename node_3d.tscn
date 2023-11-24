@@ -31,16 +31,18 @@ sky_material = SubResource("PanoramaSkyMaterial_23y8y")
 [sub_resource type="Environment" id="Environment_g6ddv"]
 background_mode = 2
 background_color = Color(0.803922, 0.956863, 0.992157, 1)
-background_energy_multiplier = 1.5
 sky = SubResource("Sky_x7ej6")
 sky_rotation = Vector3(0, 0.654498, 0)
-ambient_light_source = 3
+ambient_light_source = 2
+ambient_light_color = Color(0.529412, 0.568627, 0.623529, 1)
+ambient_light_energy = 1.4
 ssao_enabled = true
 sdfgi_use_occlusion = true
 sdfgi_energy = 1.105
 fog_enabled = true
-fog_light_color = Color(0.709804, 1, 1, 1)
-fog_light_energy = 0.5
+fog_light_color = Color(0.764706, 1, 1, 1)
+fog_light_energy = 0.85
+fog_density = 0.008
 fog_sky_affect = 0.0
 volumetric_fog_density = 0.03
 volumetric_fog_sky_affect = 0.45
@@ -91,7 +93,7 @@ _data = {
 script = ExtResource("1_b0h86")
 
 [node name="Player" parent="." instance=ExtResource("1_hmu0w")]
-transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 10000, 48, 10000)
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 48, 0)
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.17381, 23.0206, 1.46752)
@@ -135,9 +137,9 @@ libraries = {
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
 transform = Transform3D(0.804238, -0.201588, -0.559074, 0.53613, 0.652019, 0.536131, 0.256449, -0.730913, 0.632456, 0, 0, 0)
-light_color = Color(1, 1, 0.780392, 1)
-light_energy = 1.21
-light_indirect_energy = 1.5
+light_color = Color(1, 1, 0.980392, 1)
+light_energy = 1.175
+light_indirect_energy = 1.335
 shadow_enabled = true
 
 [connection signal="moved_chunks" from="Player" to="Chunks" method="_on_player_moved_chunks"]

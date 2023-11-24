@@ -49,6 +49,7 @@ public partial class Chunks : StaticBody3D
 	List<Vector3I> trees = new();
 	List<Vector3I> rocks = new();
 	List<Vector3I> chests = new();
+	List<Vector3I> safetys = new();
 	public async void generateChunk(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
 		Reserved = GetNode("/root/Reserved");
 		Position = new Vector3(xChunk, yChunk, zChunk) * chunkSize;
@@ -67,6 +68,7 @@ public partial class Chunks : StaticBody3D
 		int x = 0;
 		int y = 0;
 		int z = 0;
+
 		for (int b = 0; b < chunkSize*chunkSize*chunkSize; b++){
 			if (x == chunkSize){
 				x = 0;
@@ -183,7 +185,7 @@ public partial class Chunks : StaticBody3D
 
 	// Get the block at some xyz position.
 	int Generate(int x, int y, int z){
-		float temperatureSample = temperatureNoise.GetNoise2D(x, z) * 30;
+		float temperatureSample = temperatureNoise.GetNoise2D(x, z) * 25;
 		float hilliness = waterNoise.GetNoise2D(x, z);
 		float modY = (y / 5)*5 - 4;
 		float modY2 = (y / 2)*2 - 4;
@@ -206,7 +208,7 @@ public partial class Chunks : StaticBody3D
 			else if (temperatureSample - y > -6){
 				return 4; // sand
 			} else if (temperatureSample > -23) {
-				if (y + hilliness * 3 < 8){
+				if (y + hilliness * 3 < 9){
 					if (temperatureSample < -10 || temperatureSample > -2){
 						return 1;
 					}
@@ -287,10 +289,39 @@ public partial class Chunks : StaticBody3D
 	}
 
 	void TreePass(){
-		
 		PackedScene treeScene = GD.Load<PackedScene>("res://tree.tscn");
 		PackedScene rockScene = GD.Load<PackedScene>("res://rock.tscn");
 		PackedScene chestScene = GD.Load<PackedScene>("res://chest.tscn");
+		PackedScene safetyScene = GD.Load<PackedScene>("res://safety.tscn");
+		// check if there will be a safety generated at all
+		if (chunkPosition.X % 5 == 0 && chunkPosition.Z % 5 == 0){
+			for (int i = 0; i < safetys.Count; i++){
+				Vector3I safety = safetys[i];
+				Vector3I realPos = safety + chunkPosition*chunkSize;
+				float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y, realPos.Z);
+				if (Math.Abs(biomeSample1.GetHashCode()) % 32 == 0){
+					// check if there is space to spawn a safety zone
+					if (isSpaceClear(new Vector3I(0, 0, 0)+safety, new Vector3I(1, 4, 1)+safety)){
+						bool generating = true;
+						for (int j = 0; j < 4; j++){
+							if (isSpaceClear(new Vector3I((j % 2), -1, j / 2)+safety, new Vector3I((j % 2), -1, j / 2)+safety)){
+								generating = false;
+								break;
+							}
+						}
+						if (generating){
+							GD.Print("genning safety");
+							// spawn in safety zone
+							StaticBody3D instance = (StaticBody3D)safetyScene.Instantiate();
+							AddChild(instance);
+							instance.Position = new Vector3(safety.X, safety.Y, safety.Z);
+							break;
+						}
+					}
+				}
+			} 
+		}
+		
 		for (int i = 0; i < trees.Count; i++){
 			Vector3I tree = trees[i];
 			Vector3I realPos = tree + chunkPosition*chunkSize;
@@ -436,7 +467,10 @@ public partial class Chunks : StaticBody3D
 			case 0: // up
 				{
 					chests.Add(new Vector3I(x, y+1, z));
-					if (id == 0){ // hacky way of defining tree candidate positions
+					if (chunkPosition.Y > 0){
+						safetys.Add(new Vector3I(x, y+1, z));
+					}
+					if (id == 0){ // hacky way of defining object candidate positions
 						trees.Add(new Vector3I(x, y+1, z));
 					} else if (id == 2){
 						rocks.Add(new Vector3I(x, y+1, z));
