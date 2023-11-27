@@ -10,8 +10,11 @@ using Vector3 = Godot.Vector3;
 public partial class Chunks : StaticBody3D
 {
 
+	public bool generating = false;
 	public bool lazy = true;
 	public int chunkSize = 16;
+
+	public bool lowRes = false;
 
 	List<Vector3> vertices = new List<Vector3>();
 	List<Vector3> normals = new List<Vector3>();
@@ -30,8 +33,6 @@ public partial class Chunks : StaticBody3D
 	[Export]
 	public FastNoiseLite smallNoise;
 	[Export]
-	public FastNoiseLite bigNoise;
-	[Export]
 	public FastNoiseLite waterNoise;
 	[Export]
 	public FastNoiseLite biomeNoise;
@@ -46,11 +47,118 @@ public partial class Chunks : StaticBody3D
 
 	private Node Reserved;
 
-	List<Vector3I> trees = new();
-	List<Vector3I> rocks = new();
-	List<Vector3I> chests = new();
-	List<Vector3I> safetys = new();
-	public async void generateChunk(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
+	System.Collections.Generic.Dictionary<Vector3I, int> objects = new();
+
+	public async void GenerateChunkLod(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
+		MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
+		MeshInstance3D lodChunkMesh = (MeshInstance3D)GetNode("LodChunkMesh");
+		if (lodChunkMesh.Mesh != null){
+			chunkMesh.Visible = false;
+			lodChunkMesh.Visible = true;
+			Scale = new Vector3(2,2,2);
+			return;
+		}
+		generating = true;
+		lowRes = true;
+		int lodChunkSize = chunkSize/2;
+
+		Reserved = GetNode("/root/Reserved");
+		Position = new Vector3(xChunk, yChunk, zChunk) * chunkSize;
+		
+		chunkPosition = new Vector3I(xChunk, yChunk, zChunk);
+		cubeCoords = new(lodChunkSize*lodChunkSize*lodChunkSize);
+		cubes = new(lodChunkSize*lodChunkSize*lodChunkSize);
+		cubeIds = new(lodChunkSize*lodChunkSize*lodChunkSize);
+		this.lazy = lazy;
+		this.chunkSize = chunkSize;
+
+		var meshData = new Godot.Collections.Array();
+		meshData.Resize((int)Mesh.ArrayType.Max);
+		var waterMeshData = new Godot.Collections.Array();
+		waterMeshData.Resize((int)Mesh.ArrayType.Max);
+
+		int x = 0;
+		int y = 0;
+		int z = 0;
+
+		
+
+		for (int b = 0; b < lodChunkSize*lodChunkSize*lodChunkSize; b++){
+			if (x == lodChunkSize){
+				x = 0;
+				y += 1;
+				if (lazy){
+					await ToSignal(GetTree(), "process_frame");
+				}
+				if (y == lodChunkSize){
+					y = 0;
+					z += 1;
+				}
+			}
+			int block = Generate((x*2)+(xChunk*chunkSize), (y*2)+(yChunk*chunkSize), (z*2)+zChunk*chunkSize);
+			if (block != -1){
+				cubeIds.Add(block);
+			} else {
+				cubeIds.Add(-1);
+			}
+			x++;	
+		}
+		x = 0;
+		y = 0;
+		z = 0;
+		
+		// actual mesh creation
+		for (int i = 0; i < cubeIds.Count; i++){
+			if (x == lodChunkSize){
+				x = 0;
+				y += 1;
+				if (lazy){
+					await ToSignal(GetTree(), "process_frame");
+				}
+				if (y == lodChunkSize){
+					y = 0;
+					z += 1;
+					
+				}
+			}
+			if (cubeIds[i] == -1){
+				x += 1;
+				continue;
+			}
+			// Vector3I cube = cubes[i];
+			int id = cubeIds[i];
+			createCube(x, y, z, id);
+			x += 1;
+		}
+
+		// set up the new mesh
+		if (vertices.Count != 0){
+			meshData[(int)Mesh.ArrayType.Vertex] = vertices.ToArray();
+			meshData[(int)Mesh.ArrayType.Normal] = normals.ToArray();
+			meshData[(int)Mesh.ArrayType.TexUV] = uvs.ToArray();
+
+			ArrayMesh arrMesh = new ArrayMesh();
+
+			arrMesh?.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshData);
+			lodChunkMesh.Mesh = arrMesh;
+			lodChunkMesh.Visible = true;
+			chunkMesh.Visible = false;
+		}
+		Scale = new Vector3(2, 2, 2);
+		generating = false;
+
+	}
+	public async void GenerateChunk(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
+		MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
+		MeshInstance3D lodChunkMesh = (MeshInstance3D)GetNode("LodChunkMesh");
+		if (chunkMesh.Mesh != null){
+			chunkMesh.Visible = true;
+			lodChunkMesh.Visible = false;
+			Scale = new Vector3(1,1,1);
+			return;
+		}
+		generating = true;
+		lowRes = false;
 		Reserved = GetNode("/root/Reserved");
 		Position = new Vector3(xChunk, yChunk, zChunk) * chunkSize;
 		chunkPosition = new Vector3I(xChunk, yChunk, zChunk);
@@ -59,6 +167,10 @@ public partial class Chunks : StaticBody3D
 		cubeIds = new(chunkSize*chunkSize*chunkSize);
 		this.lazy = lazy;
 		this.chunkSize = chunkSize;
+
+		vertices.Clear();
+		normals.Clear();
+		uvs.Clear();
 
 		var meshData = new Godot.Collections.Array();
 		meshData.Resize((int)Mesh.ArrayType.Max);
@@ -73,13 +185,12 @@ public partial class Chunks : StaticBody3D
 			if (x == chunkSize){
 				x = 0;
 				y += 1;
-				if (lazy){
-					await ToSignal(GetTree(), "process_frame");
-				}
 				if (y == chunkSize){
 					y = 0;
 					z += 1;
-					
+					if (lazy){
+						await ToSignal(GetTree(), "process_frame");
+					}
 				}
 			}
 			// int block = (int)generator.Call("generate", x+(xChunk*chunkSize), y+(yChunk*chunkSize), z+zChunk*chunkSize);
@@ -132,7 +243,7 @@ public partial class Chunks : StaticBody3D
 			meshData[(int)Mesh.ArrayType.Normal] = normals.ToArray();
 			meshData[(int)Mesh.ArrayType.TexUV] = uvs.ToArray();
 
-			MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
+			
 			CollisionShape3D chunkCollision = (CollisionShape3D)GetNode("ChunkCollision");
 			ArrayMesh arrMesh = new ArrayMesh();
 
@@ -142,6 +253,7 @@ public partial class Chunks : StaticBody3D
 			chunkMesh.Mesh = arrMesh;
 			// chunkMesh.MaterialOverride = material;
 			var collision = chunkMesh.Mesh.CreateTrimeshShape();
+			chunkMesh.Visible = true;
 			chunkCollision.Shape = collision;
 		}
 		if (waterVertices.Count != 0){
@@ -158,31 +270,14 @@ public partial class Chunks : StaticBody3D
 			}
 			waterMesh.Mesh = waterArrMesh;
 		}
-
-		TreePass();
+		lodChunkMesh.Visible = false;
+		Scale = new Vector3(1,1,1);
+		
+		ObjectPass();
+		generating = false;
 	}
 	
 	
-	/* int Generate(int x, int y, int z){
-		float sample = smallNoise.GetNoise3D(x, y, z) * 2 + bigNoise.GetNoise2D(x, z) * 1;
-		float waterSample = waterNoise.GetNoise2D(x, z);
-		double modSample = Math.Min((sample+1)*16, (waterSample+0.2) * 100);
-		if (modSample < y){
-			if (y < 4){
-				return 3;
-			}	
-			return -1;
-		} else if (modSample < y + 1){
-			if (biomeNoise.GetNoise2D(x, z) < 0){
-				return 4;
-			}
-			return 0;
-		} else if (modSample < y + 2){
-			return 2;
-		}
-		return 1;
-	} */
-
 	// Get the block at some xyz position.
 	int Generate(int x, int y, int z){
 		float temperatureSample = temperatureNoise.GetNoise2D(x, z) * 25;
@@ -192,8 +287,8 @@ public partial class Chunks : StaticBody3D
 		float biomeSample1 = biomeNoise.GetNoise3D(x, modY, z);
 		float biomeSample2 = biomeNoise2.GetNoise3D(x, modY2, z);
 		double modSample = smallNoise.GetNoise2D(x, z) * 5;
-		modSample += biomeSample1 * 45;
-		modSample += biomeSample2 * 45;
+		modSample += biomeSample1 * 60 + 10;
+		modSample += biomeSample2 * 60;
 		temperatureSample -= y + (hilliness * 2);
 		modSample -= modY;
 		float caveSample = caveNoise.GetNoise3D(x, y, z);
@@ -207,8 +302,8 @@ public partial class Chunks : StaticBody3D
 			}
 			else if (temperatureSample - y > -6){
 				return 4; // sand
-			} else if (temperatureSample > -23) {
-				if (y + hilliness * 3 < 9){
+			} else if (temperatureSample > -33) {
+				if (y + hilliness * 3 < 14){
 					if (temperatureSample < -10 || temperatureSample > -2){
 						return 1;
 					}
@@ -227,35 +322,6 @@ public partial class Chunks : StaticBody3D
 			return 3; // water
 		}
 		return -1; // air
-	}
-	void GrassPass(){
-		int x = 0;
-		int y = 0;
-		int z = 0;
-		int chunkX = chunkPosition.X * chunkSize;
-		int chunkZ = chunkPosition.Z * chunkSize;
-		for (int b = 0; b < chunkSize*chunkSize*chunkSize; b++){
-			if (x == chunkSize){
-				x = 0;
-				y += 1;
-				if (y == chunkSize){
-					y = 0;
-					z += 1;
-				}
-			}
-			if (cubeIds[x + (y*chunkSize) + (z*chunkSize*chunkSize)] == 2) {
-				if (isSpaceClear(new Vector3I(x, y+1, z), new Vector3I(x, y+1, z))){
-					float humiditySample = bigNoise.GetNoise2D(x+chunkX, z+chunkZ) * 10;
-					float temperatureSample = temperatureNoise.GetNoise2D(x+chunkX, z+chunkZ) * 30;
-					temperatureSample -= y;
-					if (Math.Abs(temperatureSample - 6) < 10){
-						cubeIds[x + (y*chunkSize) + (z*chunkSize*chunkSize)] = 0;
-					}
-				}
-			}
-			
-			x++;
-		}
 	}
 	int Generate2(int x, int y, int z){
 		float modY = (y / 5)*5 - 4;
@@ -288,17 +354,25 @@ public partial class Chunks : StaticBody3D
 		return -1; // air
 	}
 
-	void TreePass(){
-		PackedScene treeScene = GD.Load<PackedScene>("res://tree.tscn");
+	// Only runs after all blocks in chunk have been generated.
+	void ObjectPass(){
+		PackedScene safetyScene = GD.Load<PackedScene>("res://safety.tscn");
 		PackedScene rockScene = GD.Load<PackedScene>("res://rock.tscn");
 		PackedScene chestScene = GD.Load<PackedScene>("res://chest.tscn");
-		PackedScene safetyScene = GD.Load<PackedScene>("res://safety.tscn");
-		// check if there will be a safety generated at all
-		if (chunkPosition.X % 5 == 0 && chunkPosition.Z % 5 == 0){
-			for (int i = 0; i < safetys.Count; i++){
-				Vector3I safety = safetys[i];
-				Vector3I realPos = safety + chunkPosition*chunkSize;
-				float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y, realPos.Z);
+		PackedScene caveScene = GD.Load<PackedScene>("res://cave.tscn");
+
+		Dictionary modItems = (Dictionary)Reserved.Get("modified_items");
+		String chunkName = Name;
+
+		List<Vector3I> successfulTrees = new();
+
+		bool generatedSafety = false;
+		foreach (KeyValuePair<Vector3I, int> entry in objects){
+			// safety generation
+			Vector3I realPos = entry.Key + chunkPosition*chunkSize;
+			float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y, realPos.Z);
+			if (chunkPosition.Y > 0 && !generatedSafety && chunkPosition.X % 5 == 0 && chunkPosition.Z % 5 == 0){
+				Vector3I safety = entry.Key;
 				if (Math.Abs(biomeSample1.GetHashCode()) % 32 == 0){
 					// check if there is space to spawn a safety zone
 					if (isSpaceClear(new Vector3I(0, 0, 0)+safety, new Vector3I(1, 4, 1)+safety)){
@@ -315,52 +389,13 @@ public partial class Chunks : StaticBody3D
 							StaticBody3D instance = (StaticBody3D)safetyScene.Instantiate();
 							AddChild(instance);
 							instance.Position = new Vector3(safety.X, safety.Y, safety.Z);
-							break;
+							generatedSafety = true;
 						}
 					}
 				}
-			} 
-		}
-		
-		for (int i = 0; i < trees.Count; i++){
-			Vector3I tree = trees[i];
-			Vector3I realPos = tree + chunkPosition*chunkSize;
-			float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y, realPos.Z);
-			int treeThreshold = 1;
-			if (treeNoise.GetNoise2D(realPos.X, realPos.Z) > 0.1){
-				treeThreshold = 50;
-			}
-			if (Math.Abs(biomeSample1.GetHashCode()) % 100 <= treeThreshold){
-				// try to spawn tree at position
-				// check if there is space to spawn a tree
-				if (isSpaceClear(new Vector3I(-1, 0, -1)+tree, new Vector3I(1, 2, 1)+tree)){
-					// spawn in tree
-					StaticBody3D instance = (StaticBody3D)treeScene.Instantiate();
-					AddChild(instance);
-					instance.Position = new Vector3(tree.X, tree.Y, tree.Z);
-				}
-			}
-		}
-		for (int i = 0; i < rocks.Count; i++){
-			Vector3I rock = rocks[i];
-			Vector3I realPos = rock + chunkPosition*chunkSize;
-			float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y, realPos.Z);
-			if (Math.Abs(biomeSample1.GetHashCode()) % 100 <= 2){
-				if (isSpaceClear(new Vector3I(0, 0, 0)+rock, new Vector3I(0, 0, 0)+rock)){
-					// spawn in rock
-					StaticBody3D instance = (StaticBody3D)rockScene.Instantiate();
-					AddChild(instance);
-					instance.Position = new Vector3(rock.X, rock.Y, rock.Z);
-				}
-			}
-		}
-		Dictionary modItems = (Dictionary)Reserved.Get("modified_items");
-		String chunkName = Name;
-		for (int i = 0; i < chests.Count; i++){
-			Vector3I chest = chests[i];
-			Vector3I realPos = chest + chunkPosition*chunkSize;
-			float biomeSample1 = biomeNoise.GetNoise3D(realPos.X, realPos.Y + 1, realPos.Z);
-			if (Math.Abs(biomeSample1.GetHashCode()) % 51 == 0){
+			// chests
+			} else if (Math.Abs(biomeSample1.GetHashCode()) % 51 == 0){
+				Vector3I chest = entry.Key;
 				if (isSpaceClear(new Vector3I(-1, 0, -1)+chest, new Vector3I(1, 1, 1)+chest)){
 					// don't spawn the chest if it's already been opened
 					if (modItems.ContainsKey(chunkName)){
@@ -409,7 +444,99 @@ public partial class Chunks : StaticBody3D
 						}
 					}
 				}
+			// trees
+			} else if (entry.Value == 0){
+				int treeThreshold = 1;
+				if (treeNoise.GetNoise2D(realPos.X, realPos.Z) > 0.1){
+					treeThreshold = 50;
+				}
+				
+				if (Math.Abs(biomeSample1.GetHashCode()) % 100 <= treeThreshold){
+					Vector3I tree = entry.Key;
+					// try to spawn tree at position
+					// check if there is space to spawn a tree
+					if (isSpaceClear(new Vector3I(-1, 0, -1)+tree, new Vector3I(1, 2, 1)+tree)){
+						// add tree to multimesh
+						successfulTrees.Add(tree);
+						/* StaticBody3D instance = (StaticBody3D)treeScene.Instantiate();
+						AddChild(instance);
+						instance.Position = new Vector3(tree.X, tree.Y, tree.Z); */
+					}
+				}
+				
+			// rocks	
+			} else if (entry.Value == 2 && Math.Abs(biomeSample1.GetHashCode()) % 100 <= 2){
+				Vector3I rock = entry.Key;
+				if (isSpaceClear(new Vector3I(0, 0, 0)+rock, new Vector3I(0, 0, 0)+rock)){
+					// spawn in rock
+					StaticBody3D instance = (StaticBody3D)rockScene.Instantiate();
+					AddChild(instance);
+					instance.Position = new Vector3(rock.X, rock.Y, rock.Z);
+
+				}
+			} else if (Math.Abs(biomeSample1.GetHashCode()) % 29 == 0){
+				Vector3I cave = entry.Key;
+				if (isSpaceClear(new Vector3I(-1, 0, -1)+cave, new Vector3I(0, 1, 0)+cave)){
+					if (!isSpaceFilled(new Vector3I(-1, -1, -1)+cave, new Vector3I(0, -1, 0)+cave)){
+						continue;
+					}
+					int direction = -1;
+					if (isSpaceFilled(new Vector3I(-2, 0, -2)+cave, new Vector3I(1, 2, -2)+cave)){
+						direction = 0;
+					} else if (isSpaceFilled(new Vector3I(-2, 0, -2)+cave, new Vector3I(-2, 2, 1)+cave)){
+						direction = 1;
+					} else if (isSpaceFilled(new Vector3I(-2, 0, 1)+cave, new Vector3I(1, 2, 1)+cave)){
+						direction = 2;
+					} else if (isSpaceFilled(new Vector3I(1, 0, -2)+cave, new Vector3I(1, 2, 1)+cave)){
+						direction = 3;
+					}
+					if (direction != -1){
+						StaticBody3D instance = (StaticBody3D)caveScene.Instantiate();
+						AddChild(instance);
+						instance.Position = new Vector3(cave.X, cave.Y, cave.Z);
+						instance.GetNode<Node3D>("Mesh").Rotation = new Vector3(0, direction * (float)Math.PI / 2.0f, 0);
+						if (direction == 0 || direction == 2){
+							if (objects.ContainsKey(new Vector3I(-1, 0, 0)+cave)){
+								objects.Remove(new Vector3I(-1, 0, 0)+cave);
+							}
+							if (objects.ContainsKey(new Vector3I(1, 0, 0)+cave)){
+								objects.Remove(new Vector3I(1, 0, 0)+cave);
+							}
+						}
+						if (direction == 1 || direction == 3){
+							if (objects.ContainsKey(new Vector3I(0, 0, -1)+cave)){
+								objects.Remove(new Vector3I(0, 0, -1)+cave);
+							}
+							if (objects.ContainsKey(new Vector3I(0, 0, 1)+cave)){
+								objects.Remove(new Vector3I(0, 0, 1)+cave);
+							}
+						}
+					}
+				}
 			}
+		}
+		// multimesh finalizing
+		if (successfulTrees.Count > 0){
+			PackedScene multiTreeScene = GD.Load<PackedScene>("res://multi_tree.tscn");
+			Mesh treeMesh = GD.Load<Mesh>("res://tree_mesh.tres");
+			PackedScene treeCollision = GD.Load<PackedScene>("res://tree_collision.tscn");
+			StaticBody3D multiInstance = (StaticBody3D)multiTreeScene.Instantiate();
+			AddChild(multiInstance);
+			// MultiMesh multiMesh = multiInstance.GetNode<MultiMeshInstance3D>("MultiMesh").Multimesh;
+			MultiMesh multiMesh = new()
+			{
+				Mesh = treeMesh,
+				TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
+				InstanceCount = successfulTrees.Count,
+				VisibleInstanceCount = successfulTrees.Count
+			};
+			for (int i = 0; i < successfulTrees.Count; i++){
+				multiMesh.SetInstanceTransform(i, new Transform3D(Basis.FromScale(new Vector3(0.4f,0.4f,0.4f)), successfulTrees[i]));
+				CollisionShape3D instance = (CollisionShape3D)treeCollision.Instantiate();
+				instance.Position = successfulTrees[i] + new Vector3(0.5f, 1.5f, 0.5f);
+				multiInstance.AddChild(instance);
+			}
+			multiInstance.GetNode<MultiMeshInstance3D>("MultiMesh").Multimesh = multiMesh;
 		}
 	}
 
@@ -442,8 +569,45 @@ public partial class Chunks : StaticBody3D
 		return true;
 	}
 
+	bool isSpaceFilled(Vector3I bound1, Vector3I bound2){
+		for (int x = bound1.X; x <= bound2.X; x++){
+			for (int y = bound1.Y; y <= bound2.Y; y++){
+				for (int z = bound1.Z; z <= bound2.Z; z++){
+					if (0 <= x && x <= 15 && 0 <= y && y <= 15 && 0 <= z && z <= 15){
+						// case that the block is inside this chunk
+						// check previously gen'd blocks if they're air
+						int index = x + (y * chunkSize) + (z * chunkSize * chunkSize);
+						if (cubeIds[index] == -1){
+							// GD.Print("Found previously generated blocks in the way.");
+							return false;
+						}
+					} else {
+						// case that the block is outside the chunk
+						// generate new blocks outside chunk and check if they're air
+						// lots of throwing away data here if the checked area is big and mostly empty but whatever
+						int result = Generate(x+(chunkPosition.X*chunkSize), y+(chunkPosition.Y*chunkSize), z+chunkPosition.Z*chunkSize);
+						if (result == -1){
+							// GD.Print("Found NOT generated blocks in the way.");
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 
 	void createCube(int x, int y, int z, int id, bool cullInteriors=true){
+		if (lowRes){
+			for (int i = 0; i < 6; i++){
+				if (isNeighborLod(x, y, z, i)){
+					continue;
+				}
+				createSquare(x, y, z, id, i);
+			}
+			return;
+		}
 		if (id == 3){ // water
 			for (int i = 0; i < 6; i++){
 				if (cullInteriors && isWaterNeighbor(x, y, z, i)){
@@ -466,7 +630,11 @@ public partial class Chunks : StaticBody3D
 		switch (orientation){
 			case 0: // up
 				{
-					chests.Add(new Vector3I(x, y+1, z));
+					if (!lowRes && !objects.ContainsKey(new Vector3I(x, y+1, z))){
+						objects.Add(new Vector3I(x, y+1, z), id);
+					}
+						
+					/* chests.Add(new Vector3I(x, y+1, z));
 					if (chunkPosition.Y > 0){
 						safetys.Add(new Vector3I(x, y+1, z));
 					}
@@ -474,7 +642,7 @@ public partial class Chunks : StaticBody3D
 						trees.Add(new Vector3I(x, y+1, z));
 					} else if (id == 2){
 						rocks.Add(new Vector3I(x, y+1, z));
-					}
+					} */
 					normalVec = Vector3.Up;
 					vertices.Add(new Vector3(x, y+1, z));
 					vertices.Add(new Vector3(x+1, y+1, z));
@@ -599,6 +767,74 @@ public partial class Chunks : StaticBody3D
 	}
 	// Generates extra blocks outside the chunk borders to cut down on the amount of squares drawn.
 	// Results in longer generation times but less load on the GPU after generation.
+	bool isNeighborLod(int x, int y, int z, int orientation = 0){
+		int lodChunkSize = chunkSize/2;
+		switch (orientation) {
+			case 0:
+				{
+					if (y == lodChunkSize-1){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X, realPos.Y + 2, realPos.Z);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x + ((y+1)*lodChunkSize) + (z*lodChunkSize*lodChunkSize)] != -1;
+				}
+			case 1:
+				{
+					if (y == 0){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X, realPos.Y - 2, realPos.Z);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x + ((y-1)*lodChunkSize) + (z*lodChunkSize*lodChunkSize)] != -1;
+				}
+			case 2:
+				{
+					if (x == lodChunkSize-1){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X + 2, realPos.Y, realPos.Z);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x+1 + (y*lodChunkSize) + (z*lodChunkSize*lodChunkSize)] != -1;
+				}
+			case 3:
+				{
+					if (x == 0){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X - 2, realPos.Y, realPos.Z);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x-1 + (y*lodChunkSize) + (z*lodChunkSize*lodChunkSize)] != -1;
+				}
+			case 4:
+				{
+					if (z == lodChunkSize-1){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X, realPos.Y, realPos.Z + 2);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x + (y*lodChunkSize) + ((z+1)*lodChunkSize*lodChunkSize)] != -1;
+				}
+			case 5:
+				{
+					if (z == 0){
+						/* Vector3I realPos = new Vector3I(x, y, z) * 2 + chunkPosition * chunkSize;
+						int neighbor = Generate(realPos.X, realPos.Y, realPos.Z - 2);
+						return neighbor != -1; */
+						return false;
+					}
+					return cubeIds[x + (y*lodChunkSize) + ((z-1)*lodChunkSize*lodChunkSize)] != -1;
+				}
+			default:
+				return false;
+			
+		}
+	}
 	bool isNeighborOptimized(int x, int y, int z, int orientation = 0){
 		switch (orientation) {
 			case 0:

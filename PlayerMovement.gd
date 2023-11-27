@@ -24,7 +24,6 @@ signal player_death
 signal moved_chunks
 
 func _process(delta):
-
 	common(delta)
 	match state:
 		0:

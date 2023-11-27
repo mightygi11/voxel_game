@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://cfmxov0wu1yf2"]
+[gd_scene load_steps=17 format=3 uid="uid://cfmxov0wu1yf2"]
 
 [ext_resource type="Script" path="res://Chunks.cs" id="1_c3vao"]
 [ext_resource type="Material" uid="uid://dcy58qwg3wk26" path="res://chunk_material.tres" id="2_3a8rr"]
@@ -7,35 +7,28 @@
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_iwv0r"]
 seed = 3
-frequency = 0.0315
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_1wiw4"]
-noise_type = 3
-seed = 5
-frequency = 0.0025
-fractal_type = 0
+frequency = 0.015
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_5338p"]
-frequency = 0.061
+frequency = 0.02
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_5ippo"]
 noise_type = 3
-frequency = 0.02
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_mte51"]
 noise_type = 3
 seed = 2
-frequency = 0.015
+frequency = 0.007
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_4dg07"]
 noise_type = 3
 seed = 3
-frequency = 0.0055
+frequency = 0.0025
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_66ce0"]
 noise_type = 3
 seed = 5
-frequency = 0.0395
+frequency = 0.02
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_8oepw"]
 noise_type = 3
@@ -90,29 +83,16 @@ shader_parameter/texture_emission = ExtResource("2_6vnlu")
 shader_parameter/noise = SubResource("NoiseTexture2D_pofny")
 shader_parameter/normalmap = SubResource("NoiseTexture2D_nhxho")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_d81ca"]
-_surfaces = [{
-"aabb": AABB(-8.02887, -8.02887, -8.02887, 16.0577, 16.0577, 16.0577),
-"attribute_data": PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 171, 170, 42, 63, 0, 0, 0, 0, 171, 170, 170, 62, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 171, 170, 42, 63, 0, 0, 0, 63, 171, 170, 170, 62, 0, 0, 0, 63, 0, 0, 128, 63, 0, 0, 0, 63, 171, 170, 170, 62, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 171, 170, 42, 63, 0, 0, 0, 0, 171, 170, 170, 62, 0, 0, 0, 63, 171, 170, 170, 62, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 128, 63, 171, 170, 42, 63, 0, 0, 0, 63, 171, 170, 170, 62, 0, 0, 128, 63, 171, 170, 170, 62, 0, 0, 0, 63, 171, 170, 42, 63, 0, 0, 0, 63, 171, 170, 42, 63, 0, 0, 0, 63, 0, 0, 128, 63, 0, 0, 0, 63, 171, 170, 170, 62, 0, 0, 128, 63, 171, 170, 42, 63, 0, 0, 128, 63, 171, 170, 42, 63, 0, 0, 128, 63, 0, 0, 128, 63, 0, 0, 128, 63),
-"format": 4119,
-"index_count": 36,
-"index_data": PackedByteArray(0, 0, 4, 0, 2, 0, 2, 0, 4, 0, 6, 0, 1, 0, 5, 0, 3, 0, 3, 0, 5, 0, 7, 0, 8, 0, 12, 0, 10, 0, 10, 0, 12, 0, 14, 0, 9, 0, 13, 0, 11, 0, 11, 0, 13, 0, 15, 0, 16, 0, 20, 0, 18, 0, 18, 0, 20, 0, 22, 0, 17, 0, 21, 0, 19, 0, 19, 0, 21, 0, 23, 0),
-"primitive": 3,
-"vertex_count": 24,
-"vertex_data": PackedByteArray(62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 65, 255, 127, 255, 127, 255, 255, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 193, 255, 255, 255, 255, 0, 0, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 65, 255, 127, 255, 127, 255, 255, 255, 191, 62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 193, 255, 255, 255, 255, 0, 0, 255, 191, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 65, 255, 127, 255, 127, 255, 255, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 193, 255, 255, 255, 255, 0, 0, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 65, 255, 127, 255, 127, 255, 255, 255, 191, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 193, 255, 255, 255, 255, 0, 0, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 65, 255, 255, 0, 128, 255, 255, 255, 255, 62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 193, 0, 0, 0, 128, 255, 127, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 193, 255, 255, 0, 128, 255, 255, 255, 255, 62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 65, 0, 0, 0, 128, 255, 127, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 65, 255, 255, 0, 128, 255, 255, 255, 255, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 193, 0, 0, 0, 128, 255, 127, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 193, 255, 255, 0, 128, 255, 255, 255, 255, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 65, 0, 0, 0, 128, 255, 127, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 65, 0, 128, 255, 255, 0, 0, 255, 191, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 65, 0, 128, 0, 0, 255, 255, 255, 191, 62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 65, 0, 128, 255, 255, 0, 0, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 65, 0, 128, 0, 0, 255, 255, 255, 191, 62, 118, 0, 65, 62, 118, 0, 65, 62, 118, 0, 193, 0, 128, 255, 255, 0, 0, 255, 191, 62, 118, 0, 193, 62, 118, 0, 193, 62, 118, 0, 193, 0, 128, 0, 0, 255, 255, 255, 191, 62, 118, 0, 193, 62, 118, 0, 65, 62, 118, 0, 193, 0, 128, 255, 255, 0, 0, 255, 191, 62, 118, 0, 65, 62, 118, 0, 193, 62, 118, 0, 193, 0, 128, 0, 0, 255, 255, 255, 191)
-}]
-
 [node name="StaticBody3D" type="StaticBody3D"]
 script = ExtResource("1_c3vao")
 smallNoise = SubResource("FastNoiseLite_iwv0r")
-bigNoise = SubResource("FastNoiseLite_1wiw4")
 waterNoise = SubResource("FastNoiseLite_5338p")
 biomeNoise = SubResource("FastNoiseLite_5ippo")
 biomeNoise2 = SubResource("FastNoiseLite_mte51")
 caveNoise = SubResource("FastNoiseLite_4dg07")
 treeNoise = SubResource("FastNoiseLite_66ce0")
 temperatureNoise = SubResource("FastNoiseLite_8oepw")
-metadata/_edit_pinned_properties_ = [&"smallNoise", &"bigNoise", &"waterNoise", &"biomeNoise"]
+metadata/_edit_pinned_properties_ = [&"smallNoise", &"waterNoise", &"biomeNoise"]
 
 [node name="WaterMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, -1.49012e-08, 2.98023e-08, -1.49012e-08, 1, 2.98023e-08, -2.98023e-08, -2.98023e-08, 1, 0, 0, 2.38419e-07)
@@ -123,10 +103,8 @@ cast_shadow = 0
 transform = Transform3D(1, -1.49012e-08, 2.98023e-08, -1.49012e-08, 1, 2.98023e-08, -2.98023e-08, -2.98023e-08, 1, 0, 0, 2.38419e-07)
 material_override = ExtResource("2_3a8rr")
 
-[node name="ChunkCollision" type="CollisionShape3D" parent="."]
+[node name="LodChunkMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, -1.49012e-08, 2.98023e-08, -1.49012e-08, 1, 2.98023e-08, -2.98023e-08, -2.98023e-08, 1, 0, 0, 2.38419e-07)
+material_override = ExtResource("2_3a8rr")
 
-[node name="DebugChunkBorder" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8, 8)
-visible = false
-mesh = SubResource("ArrayMesh_d81ca")
-skeleton = NodePath("")
+[node name="ChunkCollision" type="CollisionShape3D" parent="."]
