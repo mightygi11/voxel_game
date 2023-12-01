@@ -12,9 +12,12 @@ public partial class Chunks : StaticBody3D
 
 	public bool generating = false;
 	public bool lazy = true;
-	public int chunkSize = 16;
+	public int chunkSize = 32;
 
 	public bool lowRes = false;
+
+	public bool lowResGenerated = false;
+	public bool hiResGenerated = false;
 
 	List<Vector3> vertices = new List<Vector3>();
 	List<Vector3> normals = new List<Vector3>();
@@ -47,19 +50,25 @@ public partial class Chunks : StaticBody3D
 
 	private Node Reserved;
 
+	Node3D ObjectsNode;
+
 	System.Collections.Generic.Dictionary<Vector3I, int> objects = new();
 
 	public async void GenerateChunkLod(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
+		ObjectsNode = (Node3D)GetNode("ChunkMesh");
 		MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
+		MeshInstance3D waterMesh = (MeshInstance3D)GetNode("WaterMesh");
 		MeshInstance3D lodChunkMesh = (MeshInstance3D)GetNode("LodChunkMesh");
-		if (lodChunkMesh.Mesh != null){
+		SetCollisionLayerValue(1, false);
+		lowRes = true;
+		if (lowResGenerated == true){
 			chunkMesh.Visible = false;
+			waterMesh.Visible = false;
 			lodChunkMesh.Visible = true;
 			Scale = new Vector3(2,2,2);
 			return;
 		}
 		generating = true;
-		lowRes = true;
 		int lodChunkSize = chunkSize/2;
 
 		Reserved = GetNode("/root/Reserved");
@@ -143,22 +152,28 @@ public partial class Chunks : StaticBody3D
 			lodChunkMesh.Mesh = arrMesh;
 			lodChunkMesh.Visible = true;
 			chunkMesh.Visible = false;
+			waterMesh.Visible = false;
 		}
 		Scale = new Vector3(2, 2, 2);
+		lowResGenerated = true;
 		generating = false;
 
 	}
 	public async void GenerateChunk(int xChunk, int yChunk, int zChunk, int chunkSize, bool lazy){
+		ObjectsNode = (Node3D)GetNode("ChunkMesh");
 		MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
 		MeshInstance3D lodChunkMesh = (MeshInstance3D)GetNode("LodChunkMesh");
-		if (chunkMesh.Mesh != null){
+		MeshInstance3D waterMesh = (MeshInstance3D)GetNode("WaterMesh");
+		lowRes = false;
+		SetCollisionLayerValue(1, true);
+		if (hiResGenerated == true){
 			chunkMesh.Visible = true;
+			waterMesh.Visible = true;
 			lodChunkMesh.Visible = false;
 			Scale = new Vector3(1,1,1);
 			return;
 		}
 		generating = true;
-		lowRes = false;
 		Reserved = GetNode("/root/Reserved");
 		Position = new Vector3(xChunk, yChunk, zChunk) * chunkSize;
 		chunkPosition = new Vector3I(xChunk, yChunk, zChunk);
@@ -263,17 +278,18 @@ public partial class Chunks : StaticBody3D
 			waterMeshData[(int)Mesh.ArrayType.Normal] = waterNormals.ToArray();
 			waterMeshData[(int)Mesh.ArrayType.TexUV] = waterUvs.ToArray();
 
-			MeshInstance3D waterMesh = (MeshInstance3D)GetNode("WaterMesh");
 			ArrayMesh waterArrMesh = new ArrayMesh();
 			if (waterArrMesh != null) {
 				waterArrMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, waterMeshData);
 			}
+			waterMesh.Visible = true;
 			waterMesh.Mesh = waterArrMesh;
 		}
 		lodChunkMesh.Visible = false;
 		Scale = new Vector3(1,1,1);
 		
 		ObjectPass();
+		hiResGenerated = true;
 		generating = false;
 	}
 	
@@ -387,7 +403,7 @@ public partial class Chunks : StaticBody3D
 							GD.Print("genning safety");
 							// spawn in safety zone
 							StaticBody3D instance = (StaticBody3D)safetyScene.Instantiate();
-							AddChild(instance);
+							ObjectsNode.AddChild(instance);
 							instance.Position = new Vector3(safety.X, safety.Y, safety.Z);
 							generatedSafety = true;
 						}
@@ -409,7 +425,7 @@ public partial class Chunks : StaticBody3D
 					if (!isSpaceClear(new Vector3I(0, 2, 0)+chest, new Vector3I(0, 3, 0)+chest)){
 						// spawn in chest
 						StaticBody3D instance = (StaticBody3D)chestScene.Instantiate();
-						AddChild(instance);
+						ObjectsNode.AddChild(instance);
 						instance.Position = new Vector3(chest.X, chest.Y, chest.Z);
 						instance.GetNode<Node3D>("mesh").Rotation = new Vector3(0, direction * (float)Math.PI / 2.0f, 0);
 					} else {
@@ -438,7 +454,7 @@ public partial class Chunks : StaticBody3D
 						}
 						if (occludedDirections >= 3){
 							StaticBody3D instance = (StaticBody3D)chestScene.Instantiate();
-							AddChild(instance);
+							ObjectsNode.AddChild(instance);
 							instance.Position = new Vector3(chest.X, chest.Y, chest.Z);
 							instance.GetNode<Node3D>("mesh").Rotation = new Vector3(0, direction * (float)Math.PI / 2.0f, 0);
 						}
@@ -470,7 +486,7 @@ public partial class Chunks : StaticBody3D
 				if (isSpaceClear(new Vector3I(0, 0, 0)+rock, new Vector3I(0, 0, 0)+rock)){
 					// spawn in rock
 					StaticBody3D instance = (StaticBody3D)rockScene.Instantiate();
-					AddChild(instance);
+					ObjectsNode.AddChild(instance);
 					instance.Position = new Vector3(rock.X, rock.Y, rock.Z);
 
 				}
@@ -492,7 +508,7 @@ public partial class Chunks : StaticBody3D
 					}
 					if (direction != -1){
 						StaticBody3D instance = (StaticBody3D)caveScene.Instantiate();
-						AddChild(instance);
+						ObjectsNode.AddChild(instance);
 						instance.Position = new Vector3(cave.X, cave.Y, cave.Z);
 						instance.GetNode<Node3D>("Mesh").Rotation = new Vector3(0, direction * (float)Math.PI / 2.0f, 0);
 						if (direction == 0 || direction == 2){
@@ -521,7 +537,7 @@ public partial class Chunks : StaticBody3D
 			Mesh treeMesh = GD.Load<Mesh>("res://tree_mesh.tres");
 			PackedScene treeCollision = GD.Load<PackedScene>("res://tree_collision.tscn");
 			StaticBody3D multiInstance = (StaticBody3D)multiTreeScene.Instantiate();
-			AddChild(multiInstance);
+			ObjectsNode.AddChild(multiInstance);
 			// MultiMesh multiMesh = multiInstance.GetNode<MultiMeshInstance3D>("MultiMesh").Multimesh;
 			MultiMesh multiMesh = new()
 			{

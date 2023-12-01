@@ -3,13 +3,20 @@ extends Node
 var reservations: Array[ReservationArea]
 var world_env
 var modified_items := {}
+var render_distance = 4
+
+signal render_dist_changed
 
 class ReservationArea:
 	var blockID: int
 	var chunk: Vector3i
 	var bound1: Vector3i
 	var bound2: Vector3i
-	
+
+func update_render_distance(dist: int):
+	render_distance = dist
+	emit_signal("render_dist_changed", dist)
+
 # Called when the node enters the scene tree for the first time.
 func is_reserved(chunk, x, y, z) -> bool:
 	for r in reservations:

@@ -1,8 +1,10 @@
 using Godot;
 using System;
 
-public partial class chunk : StaticBody3D
+public partial class chunk2 : StaticBody3D
 {
+	[Export]
+	public int GaySex;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{

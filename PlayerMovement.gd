@@ -16,6 +16,7 @@ var current_chunk = Vector3i(0, 0, 0)
 @onready var camera_arm = $SpringArm3D
 @onready var water_overlay = $SpringArm3D/Camera3D/Control/WaterOverlay
 @onready var interact_ray = $SpringArm3D/Camera3D/InteractRay
+@onready var chunk_generator = $"../Chunks"
 
 #state: 0 = default, 1 = airborne, 2 = crouch
 #hand_state: 0 = default, 1 = mantle, 2 = walljump
@@ -52,7 +53,7 @@ func common(delta):
 		
 	var chunk = Vector3i(floor(position.x/16.0), floor(position.y/16.0), floor(position.z/16.0))
 	if chunk != current_chunk:
-		emit_signal("moved_chunks", chunk.x, chunk.y, chunk.z)
+		# emit_signal("ChunkMoved", chunk.x, chunk.y, chunk.z)
 		spawn_point = Vector3(position.x, 17, position.z)
 		current_chunk = chunk
 	if position.y < 3.6:
