@@ -1,32 +1,33 @@
 [gd_scene load_steps=16 format=3 uid="uid://cfmxov0wu1yf2"]
 
-[ext_resource type="Script" path="res://Chunk.cs" id="1_cfw5o"]
+[ext_resource type="Script" path="res://WorldGen/Chunk.cs" id="1_l1bec"]
 [ext_resource type="Material" uid="uid://dcy58qwg3wk26" path="res://chunk_material.tres" id="2_3a8rr"]
 [ext_resource type="Texture2D" uid="uid://bsv5x0lmkg3m0" path="res://tilemap.png" id="2_6vnlu"]
 [ext_resource type="Shader" path="res://water.gdshader" id="3_p7bgt"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_i5ihm"]
-noise_type = 3
-frequency = 0.0135
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_3o8t7"]
-noise_type = 3
-frequency = 0.018
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_mxd3l"]
-noise_type = 3
-frequency = 0.0235
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_yebsv"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_gwjgo"]
 noise_type = 3
 frequency = 0.03
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_q5b00"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_v1dt2"]
 noise_type = 3
-frequency = 0.0045
+frequency = 0.033
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_u1yt0"]
-frequency = 0.017
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_g7fld"]
+noise_type = 3
+frequency = 0.0145
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_uj7hc"]
+noise_type = 3
+frequency = 0.008
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_p0x1n"]
+noise_type = 3
+frequency = 0.006
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_el5ni"]
+noise_type = 3
+frequency = 0.0132
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_e23ed"]
 
@@ -76,13 +77,13 @@ shader_parameter/noise = SubResource("NoiseTexture2D_pofny")
 shader_parameter/normalmap = SubResource("NoiseTexture2D_nhxho")
 
 [node name="Chunk" type="StaticBody3D"]
-script = ExtResource("1_cfw5o")
-biomeNoise = SubResource("FastNoiseLite_i5ihm")
-biomeNoise2 = SubResource("FastNoiseLite_3o8t7")
-smallNoise = SubResource("FastNoiseLite_mxd3l")
-waterNoise = SubResource("FastNoiseLite_yebsv")
-temperatureNoise = SubResource("FastNoiseLite_q5b00")
-caveNoise = SubResource("FastNoiseLite_u1yt0")
+script = ExtResource("1_l1bec")
+biomeNoise = SubResource("FastNoiseLite_gwjgo")
+biomeNoise2 = SubResource("FastNoiseLite_v1dt2")
+smallNoise = SubResource("FastNoiseLite_g7fld")
+waterNoise = SubResource("FastNoiseLite_uj7hc")
+temperatureNoise = SubResource("FastNoiseLite_p0x1n")
+caveNoise = SubResource("FastNoiseLite_el5ni")
 
 [node name="WaterMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, -1.49012e-08, 2.98023e-08, -1.49012e-08, 1, 2.98023e-08, -2.98023e-08, -2.98023e-08, 1, 0, 0, 2.38419e-07)

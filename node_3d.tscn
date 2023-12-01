@@ -1,7 +1,7 @@
 [gd_scene load_steps=17 format=3 uid="uid://b4t1w11hb7yso"]
 
 [ext_resource type="PackedScene" uid="uid://bsadimcv848ve" path="res://player.tscn" id="1_hmu0w"]
-[ext_resource type="Script" path="res://ChunkGenerator.cs" id="2_tym2t"]
+[ext_resource type="Script" path="res://WorldGen/ChunkGenerator.cs" id="2_6pebn"]
 [ext_resource type="Texture2D" uid="uid://dtqfnett47047" path="res://skybox.jpg" id="3_523ga"]
 [ext_resource type="Script" path="res://WorldEnvironment.gd" id="3_fb7rx"]
 
@@ -93,9 +93,8 @@ _data = {
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, 48, 0)
 
 [node name="Chunks" type="Node3D" parent="." node_paths=PackedStringArray("player")]
-script = ExtResource("2_tym2t")
+script = ExtResource("2_6pebn")
 player = NodePath("../Player")
-renderDistance = 8
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.17381, 23.0206, 1.46752)

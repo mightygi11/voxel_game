@@ -27,7 +27,7 @@ public partial class Chunk : StaticBody3D
 	int chunkRes;
 	public Vector3I chunkPos;
 
-	int[,,] blocks;
+	byte[,,] blocks;
 	
 	List<Vector3> vertices = new List<Vector3>();
 	List<Vector3> normals = new List<Vector3>();
@@ -58,9 +58,15 @@ public partial class Chunk : StaticBody3D
 		}
 	}
 
+	/// <summary>
+	/// Calculate blocks and construct the mesh for the given chunk.
+	/// </summary>
+	/// <param name="chunkPos"> The position of the chunk, in chunk space.</param>
+	/// <param name="chunkRes"> For LoDs, how many blocks to draw per individual block.</param>
+	/// <param name="chunkSize"> The height, width, and length of the chunk in cubic meters/blocks. </param>
 	public void Generate(Vector3I chunkPos, int chunkRes=1, int chunkSize=16){
 		// initialize arrays, lists, etc
-		blocks = new int[BLOCKS_DIMENSIONS,BLOCKS_DIMENSIONS,BLOCKS_DIMENSIONS];
+		blocks = new byte[BLOCKS_DIMENSIONS,BLOCKS_DIMENSIONS,BLOCKS_DIMENSIONS];
 		vertices.Clear();
 		normals.Clear();
 		uvs.Clear();
@@ -73,6 +79,7 @@ public partial class Chunk : StaticBody3D
 		meshData.Resize((int)Mesh.ArrayType.Max);
 
 		MeshInstance3D chunkMesh = (MeshInstance3D)GetNode("ChunkMesh");
+		CollisionShape3D chunkCollision = (CollisionShape3D)GetNode("ChunkCollision");
 		
 		Position = chunkPos * chunkSize;
 		
@@ -93,7 +100,7 @@ public partial class Chunk : StaticBody3D
 			meshData[(int)Mesh.ArrayType.Normal] = normals.ToArray();
 			meshData[(int)Mesh.ArrayType.TexUV] = uvs.ToArray();
 			
-			CollisionShape3D chunkCollision = (CollisionShape3D)GetNode("ChunkCollision");
+			
 			ArrayMesh arrMesh = new ArrayMesh();
 
 			if (arrMesh != null){
@@ -107,6 +114,14 @@ public partial class Chunk : StaticBody3D
 		}
 	}
 
+	/// <summary>
+	/// Calculate the blocks to be used in the chunk.
+	/// </summary>
+	/// <param name="chunkX"> X position of chunk in chunk space. </param>
+	/// <param name="chunkY"> Y position of chunk in chunk space. </param>
+	/// <param name="chunkZ"> Z position of chunk in chunk space. </param>
+	/// <param name="chunkRes"> The number of blocks to calculate per cubic meter. </param>
+	/// <param name="chunkSize"> The size of the chunk in blocks/cubic meters. </param>
 	void CalculateBlocks(int chunkX, int chunkY, int chunkZ, int chunkRes=1, int chunkSize=16){
 		for (int x = 0; x < chunkSize; x += chunkRes){
 			for (int y = 0; y < chunkSize; y += chunkRes){
@@ -188,6 +203,11 @@ public partial class Chunk : StaticBody3D
 		}
 	}
 
+	/// <summary>
+	/// Calculate all the vertices, normals, and UVs for the mesh, and
+	/// store them in their respective class variables.
+	/// </summary>
+	/// <param name="chunkRes"> The number of cubes to draw per cubic meter. </param>
 	void CalculateMesh(int chunkRes){
 		for (int x = 0; x < chunkSize; x += chunkRes){
 			for (int y = 0; y < chunkSize; y += chunkRes){
@@ -203,12 +223,18 @@ public partial class Chunk : StaticBody3D
 		}
 	}
 
-	void createCube(int x, int y, int z, int id, bool cullInteriors=true){
+	/// <summary>
+	/// Creates up to 6 square meshes in a cube formation.
+	/// </summary>
+	/// <param name="x"> The local x position of a block. </param>
+	/// <param name="y"> The local x position of a block. </param>
+	/// <param name="z"> The local x position of a block. </param>
+	/// <param name="id"> The block type - 0 is air, 1 is grass, etc.</param>
+	void createCube(int x, int y, int z, int id){
 		for (int i = 0; i < 6; i++){
-			if (cullInteriors && isNeighbor(x, y, z, i)){
-				continue;
+			if (!isNeighbor(x, y, z, i)){
+				createSquare(x, y, z, id, i);
 			}
-			createSquare(x, y, z, id, i);
 		}
 	}
 

@@ -17,10 +17,10 @@ func _on_h_slider_drag_ended(value_changed):
 
 
 func _on_rd_slider_drag_ended(value_changed):
-	Reserved.update_render_distance(int($PauseMenu/RDSlider.value))
+	Reserved.update_render_distance(int($PauseMenu/RDSlider.value), player.current_chunk)
 	# world_gen.render_distance = int($PauseMenu/RDSlider.value)
 	var chunk = Vector3i(player.position)/16
-	player.emit_signal("moved_chunks", chunk.x, chunk.y, chunk.z)
+	# player.emit_signal("moved_chunks", chunk.x, chunk.y, chunk.z)
 
 
 func _on_fancy_slider_drag_ended(value_changed):

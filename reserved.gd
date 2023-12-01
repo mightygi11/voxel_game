@@ -4,6 +4,7 @@ var reservations: Array[ReservationArea]
 var world_env
 var modified_items := {}
 var render_distance = 4
+@onready var chunk_generator = get_tree().root.get_node("main/Chunks")
 
 signal render_dist_changed
 
@@ -13,9 +14,10 @@ class ReservationArea:
 	var bound1: Vector3i
 	var bound2: Vector3i
 
-func update_render_distance(dist: int):
+func update_render_distance(dist: int, player_chunk_pos: Vector3i):
 	render_distance = dist
-	emit_signal("render_dist_changed", dist)
+	chunk_generator.renderDistance = dist
+	chunk_generator.PlayerChunkUpdate(player_chunk_pos)
 
 # Called when the node enters the scene tree for the first time.
 func is_reserved(chunk, x, y, z) -> bool:

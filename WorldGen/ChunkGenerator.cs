@@ -26,11 +26,11 @@ public partial class ChunkGenerator : Node3D
 
 	public override void _Process(double delta)
 	{
-		GD.Print("ChunkQueue size: " + chunksToGenerate.Count);
+		// GD.Print("ChunkQueue size: " + chunksToGenerate.Count);
 		if ((Vector3I)player.Get("current_chunk") != currentPlayerChunk){
 			currentPlayerChunk = (Vector3I)player.Get("current_chunk");
 			PlayerChunkUpdate(currentPlayerChunk);
-			GD.Print("Updating player chunk...");
+			// GD.Print("Updating player chunk...");
 		}
 		if (chunksToGenerate.Count != 0){
 			Vector3I currChunk = chunksToGenerate.Dequeue();
@@ -59,7 +59,9 @@ public partial class ChunkGenerator : Node3D
 						// Math.Abs(chunkPos.Y - playerChunkPos.Y) +
 						Math.Abs(chunkPos.Z - playerChunkPos.Z);
 					if (chunkDistance <= renderDistance){
-						chunksToGenerate.Enqueue(chunkPos, chunkDistance);
+						if (!chunksLoaded.ContainsKey(chunkPos)){
+							chunksToGenerate.Enqueue(chunkPos, chunkDistance);
+						}
 					}
 				}
 			}
@@ -70,7 +72,10 @@ public partial class ChunkGenerator : Node3D
 				// Math.Abs(chunkPos.Y - playerChunkPos.Y) +
 				Math.Abs(chunkPos.Z - playerChunkPos.Z);
 			if (chunkDistance > renderDistance+4){
-				chunksToRemove.Enqueue(chunkPos);
+				chunksLoaded.TryGetValue(chunkPos, out Chunk chunk);
+				chunk.QueueFree();
+				chunksLoaded.Remove(chunkPos);
+				// chunksToRemove.Enqueue(chunkPos);
 			}
 		}
 	}
@@ -83,11 +88,13 @@ public partial class ChunkGenerator : Node3D
 		// var chunkScene2 = GD.Load<PackedScene>("res://chunk.tscn");
 		var chunk = chunkScene.Instantiate<Chunk>();
 		
-		GD.Print(chunkPos);
+		// GD.Print(chunkPos);
 		chunksLoaded.Add(chunkPos, chunk);
 		// chunk.Generate(chunkPos); // non-threaded
 		await Task.Run(() => chunk.Generate(chunkPos)); // threaded
-		AddChild(chunk);
+		if (IsInstanceValid(chunk)){
+			AddChild(chunk);
+		}
 	}
 
 	void RemoveChunk(Vector3I chunkPos){
