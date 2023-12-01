@@ -32,15 +32,17 @@ public partial class ChunkGenerator : Node3D
 			PlayerChunkUpdate(currentPlayerChunk);
 			// GD.Print("Updating player chunk...");
 		}
-		if (chunksToGenerate.Count != 0){
-			Vector3I currChunk = chunksToGenerate.Dequeue();
-			while (chunksLoaded.ContainsKey(currChunk) && chunksToGenerate.Count != 0){
-				currChunk = chunksToGenerate.Dequeue();
-			}
-			if (!chunksLoaded.ContainsKey(currChunk)){
-				currentlyGenerating = true;
-				GenerateChunk(currChunk);
-				currentlyGenerating = false;
+		for (int i = 0; i < 2; i++){
+			if (chunksToGenerate.Count != 0){
+				Vector3I currChunk = chunksToGenerate.Dequeue();
+				while (chunksLoaded.ContainsKey(currChunk) && chunksToGenerate.Count != 0){
+					currChunk = chunksToGenerate.Dequeue();
+				}
+				if (!chunksLoaded.ContainsKey(currChunk)){
+					currentlyGenerating = true;
+					GenerateChunk(currChunk);
+					currentlyGenerating = false;
+				}
 			}
 		}
 		if (chunksToRemove.Count != 0){
@@ -110,6 +112,13 @@ public partial class ChunkGenerator : Node3D
 	{
 		GD.Print("Updating chunks..");
 		UpdateChunkLists(playerChunkPos);
+	}
+
+	public int GetChunksToGenerate(){
+		return chunksToGenerate.Count;
+	}
+	public int GetChunksLoaded(){
+		return chunksLoaded.Count;
 	}
 }
 

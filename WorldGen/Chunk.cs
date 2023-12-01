@@ -145,33 +145,33 @@ public partial class Chunk : StaticBody3D
 					if (modSample > 0){
 						if (realY < 4){
 							if (temperatureSample > -9){
-								blocks[x,y,z] = 4; // sand
+								blocks[x,y,z] = 5; // sand
 							} else {
-								blocks[x,y,z] = 2; // stone
+								blocks[x,y,z] = 3; // stone
 							}
 						}
 						else if (temperatureSample - realY > -6){
-							blocks[x,y,z] = 4; // sand
+							blocks[x,y,z] = 5; // sand
 						} else if (temperatureSample > -33) {
 							if (realY + hilliness * 3 < 14){
 								if (temperatureSample < -10 || temperatureSample > -2){
 									blocks[x,y,z] = 1;
 								} else {
-									blocks[x,y,z] = 1;
+									blocks[x,y,z] = 2;
 								}
 							} else {
-								blocks[x,y,z] = 2; // stone
+								blocks[x,y,z] = 3; // stone
 							}
 						} else {
-							blocks[x,y,z] = 5; // snow
+							blocks[x,y,z] = 6; // snow
 						}
 						
 					} else {
 						if (realY < 4){
 							if (temperatureSample < -10){
-								blocks[x,y,z] = 6; // ice
+								blocks[x,y,z] = 7; // ice
 							} else {
-								blocks[x,y,z] = 3; // water
+								blocks[x,y,z] = 4; // water
 							}
 						} else {
 							blocks[x,y,z] = 0; // air
@@ -227,8 +227,8 @@ public partial class Chunk : StaticBody3D
 	/// Creates up to 6 square meshes in a cube formation.
 	/// </summary>
 	/// <param name="x"> The local x position of a block. </param>
-	/// <param name="y"> The local x position of a block. </param>
-	/// <param name="z"> The local x position of a block. </param>
+	/// <param name="y"> The local y position of a block. </param>
+	/// <param name="z"> The local z position of a block. </param>
 	/// <param name="id"> The block type - 0 is air, 1 is grass, etc.</param>
 	void createCube(int x, int y, int z, int id){
 		for (int i = 0; i < 6; i++){
@@ -238,6 +238,16 @@ public partial class Chunk : StaticBody3D
 		}
 	}
 
+	/// <summary>
+	/// Checks if any given block has a neighboring solid block in any of 6 directions.
+	/// Returns false on the edges of chunks.
+	/// </summary>
+	/// <param name="x"> The local x position of a block. </param>
+	/// <param name="y"> The local y position of a block. </param>
+	/// <param name="z"> The local z position of a block. </param>
+	/// <param name="orientation"> The direction to check for a neighbor in.
+	/// 0 = up, 1 = down, 2 = +x, 3 = -x, 4 = +z, 5 = -z </param>
+	/// <returns></returns>
 	bool isNeighbor(int x, int y, int z, int orientation = 0){
 		switch (orientation) {
 			case 0:
@@ -275,8 +285,18 @@ public partial class Chunk : StaticBody3D
 			
 		}
 	}
+
+	/// <summary>
+	/// Draws a square with 1 of 6 orientations at some local position.
+	/// </summary>
+	/// <param name="x"> The local x position of a block. </param>
+	/// <param name="y"> The local y position of a block. </param>
+	/// <param name="z"> The local z position of a block. </param>
+	/// <param name="id"> The block type. 1 is grass, 2 is dirt, etc. </param>
+	/// <param name="orientation"> The direction to draw the square facing. </param>
 	void createSquare(int x, int y, int z, int id, int orientation){
 		Vector3 normalVec;
+		if (id == 0) return; // failsafe. don't draw air squares
 		switch (orientation){
 			case 0: // up
 				{
@@ -349,6 +369,7 @@ public partial class Chunk : StaticBody3D
 		for (int i = 0; i < 6; i++){
 			normals.Add(normalVec);
 		}
+		id -= 1;
 		float offsetY = (id/texmapSize)/(float)texmapSize;
 		float offsetX = (id%texmapSize)/(float)texmapSize;
 		float texScale = 1/(float)texmapSize;

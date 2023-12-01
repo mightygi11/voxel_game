@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://biofl4hqtyaly"]
+[gd_scene load_steps=4 format=3 uid="uid://biofl4hqtyaly"]
 
 [ext_resource type="Script" path="res://ui.gd" id="1_5qbo1"]
+[ext_resource type="Script" path="res://Debug.gd" id="2_tmnqk"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dcfuc"]
 blend_mode = 3
@@ -65,6 +66,16 @@ min_value = 1.0
 max_value = 4.0
 value = 2.0
 rounded = true
+
+[node name="Debug" type="Label" parent="."]
+layout_mode = 0
+offset_left = 649.0
+offset_top = 8.0
+offset_right = 1141.0
+offset_bottom = 281.0
+text = "DEBUG :3"
+horizontal_alignment = 2
+script = ExtResource("2_tmnqk")
 
 [connection signal="drag_ended" from="PauseMenu/SensitivitySlider" to="." method="_on_h_slider_drag_ended"]
 [connection signal="drag_ended" from="PauseMenu/RDSlider" to="." method="_on_rd_slider_drag_ended"]
